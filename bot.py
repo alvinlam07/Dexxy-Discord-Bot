@@ -1,18 +1,25 @@
+import asyncio
 import discord
 import os
+from discord.ext.commands import Bot
 from dotenv import load_dotenv
 
 load_dotenv()
 
-class MyClient(discord.Client):
-    async def on_ready(self):
-        print(f'Logged on as {self.user}!')
-
-    async def on_message(self, message):
-        print(f'Message from {message.author}: {message.content}')
-
 intents = discord.Intents.default()
-intents.message_content = True
+bot = Bot(command_prefix='/', intents=intents)
 
-client = MyClient(intents=intents)
-client.run(os.getenv('DISCORD_TOKEN'))
+async def load():
+	for cog_file in os.listdir('./cogs'):
+		if cog_file.endswith(".py"):
+			try:
+				await bot.load_extension(f'cogs.{cog_file[:-3]}')
+				print(f'Loaded {cog_file}')
+			except Exception:
+				print(f'Failed to load {cog_file}')
+				
+async def main():
+	await load()
+	await bot.start(os.getenv('DISCORD_TOKEN'))
+
+asyncio.run(main())
